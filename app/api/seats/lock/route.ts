@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { lockSeat, unlockSeat, extendSeatLock } from "@/lib/redis";
+import { lockSeat, unlockSeat, getLockedSeats } from "@/lib/seat-lock";
 import { getCurrentUser } from "@/lib/auth";
 
+/**
+ * POST /api/seats/lock
+ * body: { concertId, seatId, action }
+ * action: "lock" | "unlock"
+ */
 export async function POST(request: NextRequest) {
   try {
+    // 1️⃣ Auth
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -12,46 +18,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 2️⃣ Body
     const { concertId, seatId, action } = await request.json();
 
     if (!concertId || !seatId || !action) {
       return NextResponse.json(
-        { error: "concertId, seatId, and action are required" },
+        { error: "concertId, seatId and action are required" },
         { status: 400 }
       );
     }
 
     let success = false;
 
-    switch (action) {
-      case "lock":
-        success = await lockSeat(concertId, seatId, user.id);
-        break;
-      case "unlock":
-        success = await unlockSeat(concertId, seatId, user.id);
-        break;
-      case "extend":
-        success = await extendSeatLock(concertId, seatId, user.id);
-        break;
-      default:
-        return NextResponse.json(
-          { error: "Invalid action. Use: lock, unlock, or extend" },
-          { status: 400 }
-        );
-    }
+    if (action === "lock") {
+      success = await lockSeat(concertId, seatId, user.userId);
 
-    if (!success && action === "lock") {
+      if (!success) {
+        return NextResponse.json(
+          { error: "Seat already locked by another user" },
+          { status: 409 }
+        );
+      }
+    } else if (action === "unlock") {
+      success = await unlockSeat(concertId, seatId, user.userId);
+    } else {
       return NextResponse.json(
-        { error: "Seat is already locked by another user" },
-        { status: 409 }
+        { error: "Invalid action (lock | unlock)" },
+        { status: 400 }
       );
     }
 
+    // 3️⃣ Optional: return fresh locked seats
+    const lockedSeats = await getLockedSeats(concertId);
+
     return NextResponse.json({
       success,
-      seatId,
       action,
-      userId: user.id,
+      seatId,
+      userId: user.userId,
+      lockedSeats,
     });
   } catch (error) {
     console.error("Seat lock error:", error);

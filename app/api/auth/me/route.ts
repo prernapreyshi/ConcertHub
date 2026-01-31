@@ -6,12 +6,18 @@ export async function GET() {
     const user = await getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({ user: null }, { status: 200 });
+      return NextResponse.json({ user: null });
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({
+      user: {
+        id: user.userId,   // ✅ IMPORTANT
+        email: user.email,
+        name: user.name,
+      },
+    });
   } catch (error) {
     console.error("Auth check error:", error);
-    return NextResponse.json({ user: null }, { status: 200 });
+    return NextResponse.json({ user: null });
   }
 }

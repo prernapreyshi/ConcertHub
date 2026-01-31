@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/mongodb";
 import { comparePassword, signToken } from "@/lib/auth";
+import type { User } from "@/lib/models/user";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,10 +15,9 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDatabase();
-    const usersCollection = db.collection("users");
+    const users = db.collection<User>("users");
 
-    // Find user
-    const user = await usersCollection.findOne({ email });
+    const user = await users.findOne({ email });
     if (!user) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -25,34 +25,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
-    const isValidPassword = await comparePassword(password, user.password);
-    if (!isValidPassword) {
+    const valid = await comparePassword(password, user.passwordHash);
+    if (!valid) {
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Generate JWT token
+    // ✅ FIX: use userId
     const token = signToken({
-      id: user._id.toString(),
+      userId: user._id!.toString(),
       email: user.email,
       name: user.name,
     });
 
-    // Set cookie
     const response = NextResponse.json({
-      user: { id: user._id.toString(), email: user.email, name: user.name },
-      message: "Login successful",
+      user: {
+        id: user._id!.toString(),
+        email: user.email,
+        name: user.name,
+      },
     });
 
     response.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return response;

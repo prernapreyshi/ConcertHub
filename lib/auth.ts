@@ -2,11 +2,16 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined");
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export interface AuthPayload extends JwtPayload {
   userId: string;
   email: string;
+  name?: string;
 }
 
 export function signToken(payload: AuthPayload): string {
@@ -32,12 +37,22 @@ export async function comparePassword(
   return bcrypt.compare(password, hash);
 }
 
-/* ✅ FIXED */
-export async function getCurrentUser(): Promise<AuthPayload | null> {
+export async function getCurrentUser(): Promise<{
+  userId: string;
+  email: string;
+  name?: string;
+} | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
   if (!token) return null;
 
-  return verifyToken(token);
+  const decoded = verifyToken(token);
+  if (!decoded) return null;
+
+  return {
+    userId: decoded.userId,
+    email: decoded.email,
+    name: decoded.name,
+  };
 }

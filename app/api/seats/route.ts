@@ -1,54 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/mongodb";
-import { getLockedSeats } from "@/lib/redis";
+import { getLockedSeats } from "@/lib/seat-lock";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const concertId = searchParams.get("concertId") || "concert-1";
+    const concertId = searchParams.get("concertId");
+
+    if (!concertId) {
+      return NextResponse.json(
+        { error: "concertId is required" },
+        { status: 400 }
+      );
+    }
 
     const db = await getDatabase();
     const user = await getCurrentUser();
 
-    // ✅ FIX 1: correct booking status
+    // 1️⃣ Booked seats from MongoDB
     const bookings = await db
       .collection("bookings")
       .find({ concertId, status: "completed" })
       .toArray();
 
-    // ✅ FIX 2: correct seat field
     const bookedSeatIds = bookings.flatMap((b) =>
       b.seats.map((s: { seatId: string }) => s.seatId)
     );
 
-    // Redis locks
-    let lockedSeats: { seatId: string; lockedBy: string }[] = [];
+    // 2️⃣ Locked seats from Redis
+    let lockedSeats: { seatId: string; lockedBy: string | null }[] = [];
     try {
       lockedSeats = await getLockedSeats(concertId);
-    } catch (error) {
-      console.error("Redis error (seats may not show locks):", error);
+    } catch (err) {
+      console.error("Redis error:", err);
     }
 
+    // 3️⃣ Build seat status map
     const seatStatus: Record<
       string,
-      { status: "available" | "locked" | "selected" | "booked"; lockedBy?: string }
+      {
+        status: "available" | "locked" | "selected" | "booked";
+        lockedBy?: string | null;
+      }
     > = {};
 
-    // Booked seats
+    // Booked always wins
     for (const seatId of bookedSeatIds) {
       seatStatus[seatId] = { status: "booked" };
     }
 
     // Locked seats
     for (const lock of lockedSeats) {
-      if (!seatStatus[lock.seatId]) {
-        seatStatus[lock.seatId] = {
-          // ✅ FIX 3: userId instead of id
-          status: lock.lockedBy === user?.userId ? "selected" : "locked",
-          lockedBy: lock.lockedBy,
-        };
-      }
+      if (!lock.lockedBy) continue;
+      if (seatStatus[lock.seatId]) continue;
+
+      seatStatus[lock.seatId] = {
+        status:
+          lock.lockedBy === user?.userId ? "selected" : "locked",
+        lockedBy: lock.lockedBy,
+      };
     }
 
     return NextResponse.json({
@@ -59,7 +70,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Get seats error:", error);
     return NextResponse.json(
-      { error: "Failed to get seat status" },
+      { error: "Failed to fetch seat status" },
       { status: 500 }
     );
   }
