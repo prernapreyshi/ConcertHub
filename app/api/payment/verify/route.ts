@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyPaymentSignature } from "@/lib/razorpay";
 import { getDatabase } from "@/lib/mongodb";
 import { getCurrentUser } from "@/lib/auth";
-import { unlockAllUserSeats } from "@/lib/redis";
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Get the order
     const order = await ordersCollection.findOne({
       razorpayOrderId: razorpay_order_id,
-      userId: user.id,
+      userId: user.userId, // ✅ FIXED
     });
 
     if (!order) {
@@ -71,12 +70,15 @@ export async function POST(request: NextRequest) {
     );
 
     // Create booking
-    const bookingId = `BK${Date.now()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    
-    const booking = await bookingsCollection.insertOne({
+    const bookingId = `BK${Date.now()}${Math.random()
+      .toString(36)
+      .substring(2, 6)
+      .toUpperCase()}`;
+
+    const bookingResult = await bookingsCollection.insertOne({
       bookingId,
       concertId: order.concertId,
-      userId: user.id,
+      userId: user.userId, // ✅ FIXED
       userEmail: user.email,
       userName: user.name,
       seats: order.seats,
@@ -87,18 +89,13 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
     });
 
-    // Release Redis locks for this user (seats are now permanently booked)
-    try {
-      await unlockAllUserSeats(order.concertId, user.id);
-    } catch (error) {
-      console.error("Error releasing Redis locks:", error);
-    }
+   
 
     return NextResponse.json({
       success: true,
       bookingId,
       booking: {
-        id: booking.insertedId.toString(),
+        id: bookingResult.insertedId.toString(),
         bookingId,
         concertId: order.concertId,
         seats: order.seats,

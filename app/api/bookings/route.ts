@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     if (bookingId) {
       const booking = await bookingsCollection.findOne({
         bookingId,
-        userId: user.id,
+        userId: user.userId, // ✅ FIXED
       });
 
       if (!booking) {
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     // Get all user bookings
     const bookings = await bookingsCollection
-      .find({ userId: user.id })
+      .find({ userId: user.userId }) // ✅ FIXED
       .sort({ createdAt: -1 })
       .toArray();
 
