@@ -27,11 +27,9 @@ function BookingApp() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
 
-  // 🔑 NEW STATE
   const [view, setView] = useState<"booking" | "ticket">("booking")
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null)
 
-  /* ✅ AUTO SHOW LAST TICKET AFTER LOGIN */
   useEffect(() => {
     if (user && bookings.length > 0) {
       setActiveBooking(bookings[bookings.length - 1])
@@ -66,7 +64,6 @@ function BookingApp() {
     setView("booking")
   }
 
-  /* ✅ CLICK FROM HEADER → SHOW TICKET */
   const handleMyTickets = () => {
     if (bookings.length > 0) {
       setActiveBooking(bookings[bookings.length - 1])
@@ -76,10 +73,9 @@ function BookingApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 🔥 PASS CLICK HANDLER */}
       <Header onMyTickets={handleMyTickets} />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
         {/* ================= TICKET VIEW ================= */}
         {view === "ticket" && activeBooking && (
           <TicketConfirmation
@@ -91,17 +87,18 @@ function BookingApp() {
         {/* ================= BOOKING VIEW ================= */}
         {view === "booking" && (
           <>
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div className="mb-6 md:mb-8 text-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
                 Book Your Tickets
               </h1>
-              <p className="mt-2 text-muted-foreground">
+              <p className="mt-2 text-sm md:text-base text-muted-foreground">
                 Select your seats and enjoy the show
               </p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-3">
-              <div className="space-y-6 lg:col-span-2">
+            <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-3">
+              {/* LEFT SECTION */}
+              <div className="space-y-4 md:space-y-6 lg:col-span-2">
                 <ConcertInfo />
 
                 <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
@@ -117,7 +114,8 @@ function BookingApp() {
                 </Card>
               </div>
 
-              <div className="lg:sticky lg:top-24 lg:h-fit">
+              {/* RIGHT SIDEBAR */}
+              <div className="w-full lg:sticky lg:top-24 lg:h-fit">
                 <SelectionSummary
                   onProceedToCheckout={handleProceedToCheckout}
                   onAuthRequired={handleAuthRequired}
@@ -128,7 +126,6 @@ function BookingApp() {
         )}
       </main>
 
-      {/* MODALS */}
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
       <CheckoutModal
         open={showCheckoutModal}
