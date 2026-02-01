@@ -10,15 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
-import {
-  Loader2,
-  Clock,
-  CreditCard,
-  Shield,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react"
+import { Clock, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 import type { Booking } from "@/lib/booking-context"
 
 interface CheckoutModalProps {
@@ -33,7 +25,6 @@ export function CheckoutModal({
   onPaymentSuccess,
 }: CheckoutModalProps) {
   const {
-    user,
     concert,
     selectedSeats,
     lockSeats,
@@ -42,10 +33,7 @@ export function CheckoutModal({
     isLoading,
   } = useBooking()
 
-  // ✅ CRITICAL GUARD (FIXES THE CRASH)
-  if (!concert) {
-    return null
-  }
+  if (!concert) return null
 
   const [step, setStep] = useState<
     "confirm" | "processing" | "success" | "error"
@@ -71,10 +59,7 @@ export function CheckoutModal({
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          setTimeout(() => {
-  unlockSeats()
-}, 0)
-
+          unlockSeats()
           onOpenChange(false)
           return 0
         }
@@ -134,54 +119,82 @@ export function CheckoutModal({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[95vw] max-w-md rounded-xl p-4 sm:p-6">
+
+        {/* ================= CONFIRM ================= */}
         {step === "confirm" && (
-          <>
+          <div className="space-y-4">
             <DialogHeader>
-              <DialogTitle>Checkout</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">
+                Checkout
+              </DialogTitle>
+              <DialogDescription className="text-sm">
                 Complete your booking for {concert.name}
               </DialogDescription>
             </DialogHeader>
 
+            {/* Timer */}
             <div className="flex items-center gap-3 rounded-lg bg-accent/50 p-3">
               <Clock className="h-5 w-5 text-primary" />
-              <p className="text-xl font-bold">
+              <p className="text-lg sm:text-xl font-bold">
                 {formatTime(timeLeft)}
               </p>
             </div>
 
-            <div className="rounded-lg border p-4">
+            {/* Concert */}
+            <div className="rounded-lg border p-3 sm:p-4">
               <p className="font-medium">{concert.name}</p>
               <p className="text-sm text-muted-foreground">
                 {concert.artist}
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleCancel}>
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button variant="outline" onClick={handleCancel} className="w-full">
                 Cancel
               </Button>
-              <Button onClick={handlePayment} disabled={isLoading}>
+
+              <Button
+                onClick={handlePayment}
+                disabled={isLoading}
+                className="w-full"
+              >
                 Pay ₹{totalAmount.toFixed(2)}
               </Button>
             </div>
-          </>
+          </div>
         )}
 
+        {/* ================= PROCESSING ================= */}
         {step === "processing" && (
-          <Loader2 className="mx-auto h-16 w-16 animate-spin" />
+          <div className="flex flex-col items-center gap-3 py-6">
+            <Loader2 className="h-12 w-12 animate-spin" />
+            <p className="text-sm text-muted-foreground">
+              Processing payment…
+            </p>
+          </div>
         )}
 
+        {/* ================= SUCCESS ================= */}
         {step === "success" && (
-          <CheckCircle2 className="mx-auto h-14 w-14 text-green-600" />
+          <div className="flex flex-col items-center gap-3 py-6">
+            <CheckCircle2 className="h-12 w-12 text-green-600" />
+            <p className="font-medium">Payment successful!</p>
+          </div>
         )}
 
+        {/* ================= ERROR ================= */}
         {step === "error" && (
-          <>
-            <AlertCircle className="mx-auto h-14 w-14 text-destructive" />
-            <Button onClick={handleRetry}>Try Again</Button>
-          </>
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <AlertCircle className="h-12 w-12 text-destructive" />
+            <p className="text-sm text-muted-foreground">
+              {errorMessage}
+            </p>
+            <Button onClick={handleRetry} className="w-full sm:w-auto">
+              Try Again
+            </Button>
+          </div>
         )}
       </DialogContent>
     </Dialog>
