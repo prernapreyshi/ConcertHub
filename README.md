@@ -6,6 +6,11 @@ This project is designed to simulate a **real-world ticket booking system** usin
 
 ---
 
+**Live Demo:** 
+https://concert-hub-wfui.vercel.app
+
+---
+
 ##  Features
 
 ### 🎤 Concert Details
@@ -79,3 +84,5 @@ Create a .env.local file in the root directory.
 
 4️⃣ Run the Application
 npm run dev
+
+
