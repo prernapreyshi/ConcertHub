@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { useBooking } from "@/lib/booking-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +22,7 @@ interface AuthModalProps {
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const { login, register, isLoading } = useBooking()
+
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [error, setError] = useState<string | null>(null)
 
@@ -35,6 +34,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [registerPassword, setRegisterPassword] = useState("")
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("")
 
+  const resetForms = () => {
+    setLoginEmail("")
+    setLoginPassword("")
+    setRegisterName("")
+    setRegisterEmail("")
+    setRegisterPassword("")
+    setRegisterConfirmPassword("")
+    setError(null)
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -45,6 +54,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
 
     const success = await login(loginEmail, loginPassword)
+
     if (success) {
       onOpenChange(false)
       resetForms()
@@ -72,7 +82,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       return
     }
 
-    const success = await register(registerEmail, registerPassword, registerName)
+    const success = await register(
+      registerEmail,
+      registerPassword,
+      registerName
+    )
+
     if (success) {
       onOpenChange(false)
       resetForms()
@@ -81,65 +96,59 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
   }
 
-  const resetForms = () => {
-    setLoginEmail("")
-    setLoginPassword("")
-    setRegisterName("")
-    setRegisterEmail("")
-    setRegisterPassword("")
-    setRegisterConfirmPassword("")
-    setError(null)
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto rounded-xl p-4 sm:p-6">
+
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold">Welcome to ConcertHub</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg sm:text-2xl font-semibold">
+            Welcome to ConcertHub
+          </DialogTitle>
+
+          <DialogDescription className="text-sm">
             Sign in to your account or create a new one to book tickets
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as "login" | "register"); setError(null) }} className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            setActiveTab(v as "login" | "register")
+            setError(null)
+          }}
+          className="mt-4"
+        >
+          <TabsList className="grid w-full grid-cols-2 h-10">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="login" className="mt-6">
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    className="pl-10"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+          {/* ================= LOGIN ================= */}
 
-              <div className="space-y-2">
-                <Label htmlFor="login-password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="Enter your password"
-                    className="pl-10"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+          <TabsContent value="login" className="mt-5">
+            <form onSubmit={handleLogin} className="space-y-4">
+
+              <Field
+                label="Email"
+                icon={<Mail className="icon" />}
+                id="login-email"
+                type="email"
+                placeholder="you@example.com"
+                value={loginEmail}
+                onChange={setLoginEmail}
+                disabled={isLoading}
+              />
+
+              <Field
+                label="Password"
+                icon={<Lock className="icon" />}
+                id="login-password"
+                type="password"
+                placeholder="Enter your password"
+                value={loginPassword}
+                onChange={setLoginPassword}
+                disabled={isLoading}
+              />
 
               {error && activeTab === "login" && (
                 <p className="text-sm text-destructive">{error}</p>
@@ -158,71 +167,54 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </form>
           </TabsContent>
 
-          <TabsContent value="register" className="mt-6">
+          {/* ================= REGISTER ================= */}
+
+          <TabsContent value="register" className="mt-5">
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="register-name">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="register-name"
-                    type="text"
-                    placeholder="John Doe"
-                    className="pl-10"
-                    value={registerName}
-                    onChange={(e) => setRegisterName(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="register-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="register-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    className="pl-10"
-                    value={registerEmail}
-                    onChange={(e) => setRegisterEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+              <Field
+                label="Full Name"
+                icon={<User className="icon" />}
+                id="register-name"
+                type="text"
+                placeholder="John Doe"
+                value={registerName}
+                onChange={setRegisterName}
+                disabled={isLoading}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="register-password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="register-password"
-                    type="password"
-                    placeholder="Create a password"
-                    className="pl-10"
-                    value={registerPassword}
-                    onChange={(e) => setRegisterPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+              <Field
+                label="Email"
+                icon={<Mail className="icon" />}
+                id="register-email"
+                type="email"
+                placeholder="you@example.com"
+                value={registerEmail}
+                onChange={setRegisterEmail}
+                disabled={isLoading}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="register-confirm">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="register-confirm"
-                    type="password"
-                    placeholder="Confirm your password"
-                    className="pl-10"
-                    value={registerConfirmPassword}
-                    onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
+              <Field
+                label="Password"
+                icon={<Lock className="icon" />}
+                id="register-password"
+                type="password"
+                placeholder="Create a password"
+                value={registerPassword}
+                onChange={setRegisterPassword}
+                disabled={isLoading}
+              />
+
+              <Field
+                label="Confirm Password"
+                icon={<Lock className="icon" />}
+                id="register-confirm"
+                type="password"
+                placeholder="Confirm your password"
+                value={registerConfirmPassword}
+                onChange={setRegisterConfirmPassword}
+                disabled={isLoading}
+              />
 
               {error && activeTab === "register" && (
                 <p className="text-sm text-destructive">{error}</p>
@@ -243,5 +235,40 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         </Tabs>
       </DialogContent>
     </Dialog>
+  )
+}
+
+/* ================= REUSABLE FIELD ================= */
+
+function Field({
+  label,
+  icon,
+  id,
+  type,
+  placeholder,
+  value,
+  onChange,
+  disabled,
+}: any) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+
+      <div className="relative">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+          {icon}
+        </div>
+
+        <Input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          className="pl-10"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        />
+      </div>
+    </div>
   )
 }
