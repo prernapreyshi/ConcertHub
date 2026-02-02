@@ -225,10 +225,17 @@ const register = useCallback(async (email: string, password: string, name: strin
   }
 
   // ✅ guest mode
-  if (!user) {
-    setSelectedSeats(prev => [...prev, seat]);
-    return;
-  }
+if (!user) {
+  setSeats(prev =>
+    prev.map(s =>
+      s.seatId === seatId ? { ...s, status: "selected" } : s
+    )
+  );
+
+  setSelectedSeats(prev => [...prev, seat]);
+  return;
+}
+
 
   // ✅ logged-in → lock on server
   const res = await fetch("/api/seats/lock", {
