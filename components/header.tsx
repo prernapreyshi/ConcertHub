@@ -10,13 +10,16 @@ interface HeaderProps {
 }
 
 export function Header({ onMyTickets }: HeaderProps) {
-  const { user, logout, bookings } = useBooking()
+  const booking = useBooking()
+
+  const user = booking?.user
+  const logout = booking?.logout
+  const bookings = booking?.bookings ?? []
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
 
-        {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-primary">
             <Ticket className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
@@ -27,11 +30,9 @@ export function Header({ onMyTickets }: HeaderProps) {
           </span>
         </div>
 
-        {/* Right */}
         <div className="flex items-center gap-2 sm:gap-4">
           {user ? (
             <>
-              {/* User info */}
               <button
                 onClick={onMyTickets}
                 className="hidden sm:flex items-center gap-2 text-left hover:opacity-80"
@@ -51,7 +52,6 @@ export function Header({ onMyTickets }: HeaderProps) {
                 </div>
               </button>
 
-              {/* Mobile icon */}
               <button
                 onClick={onMyTickets}
                 className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full bg-accent"
@@ -59,20 +59,17 @@ export function Header({ onMyTickets }: HeaderProps) {
                 <User className="h-4 w-4 text-accent-foreground" />
               </button>
 
-              {/* Logout */}
-             <Button
-  variant="outline"
-  size="sm"
-  onClick={logout}
-  className="gap-2 bg-transparent px-2 sm:px-3"
->
-  <LogOut className="h-4 w-4" />
-  <span className="hidden sm:inline">Logout</span>
-</Button>
-
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => logout?.()}
+                className="gap-2 bg-transparent px-2 sm:px-3"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
             </>
           ) : (
-            // ✅ Guest view → Login button
             <Button
               size="sm"
               onClick={openAuthModal}
