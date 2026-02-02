@@ -63,7 +63,8 @@ export function Header({ onMyTickets }: HeaderProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={logout}
+               onClick={() => logout()}
+
                 className="gap-2 bg-transparent px-2 sm:px-3"
               >
                 <LogOut className="h-4 w-4" />
