@@ -193,17 +193,24 @@ useEffect(() => {
   /* ---------- Seat selection ---------- */
 
   const selectSeat = useCallback(async (seatId: string) => {
+  const seat = seats.find(s => s.seatId === seatId);
+  if (!seat) return;
 
-  // ✅ guest selection allowed (no login)
+  // 🔁 toggle logic (prevents duplicates)
+  const alreadySelected = selectedSeats.some(s => s.seatId === seatId);
+
+  if (alreadySelected) {
+    setSelectedSeats(prev => prev.filter(s => s.seatId !== seatId));
+    return;
+  }
+
+  // ✅ guest mode
   if (!user) {
-    const seat = seats.find(s => s.seatId === seatId);
-    if (!seat) return;
-
     setSelectedSeats(prev => [...prev, seat]);
     return;
   }
 
-  // ✅ logged-in users lock seat on server
+  // ✅ logged-in → lock on server
   const res = await fetch("/api/seats/lock", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -216,9 +223,6 @@ useEffect(() => {
 
   if (!res.ok) return;
 
-  const seat = seats.find(s => s.seatId === seatId);
-  if (!seat) return;
-
   setSeats(prev =>
     prev.map(s =>
       s.seatId === seatId ? { ...s, status: "locked" } : s
@@ -226,7 +230,8 @@ useEffect(() => {
   );
 
   setSelectedSeats(prev => [...prev, seat]);
-}, [user, seats]);
+}, [user, seats, selectedSeats]);
+
 
 
   const deselectSeat = useCallback(async (seatId: string) => {
