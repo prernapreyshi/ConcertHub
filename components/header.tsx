@@ -12,9 +12,10 @@ interface HeaderProps {
 export function Header({ onMyTickets }: HeaderProps) {
   const booking = useBooking()
 
-  const user = booking?.user
-  const logout = booking?.logout
-  const bookings = booking?.bookings ?? []
+const user = booking?.user
+const logout = booking?.logout ?? (() => {})
+const bookings = booking?.bookings ?? []
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
