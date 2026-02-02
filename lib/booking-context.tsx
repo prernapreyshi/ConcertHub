@@ -154,52 +154,51 @@ useEffect(() => {
   /* ---------- Auth ---------- */
 
   const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
+  setIsLoading(true);
 
-    const res = await fetch("/api/auth/login", {
-  method: "POST",
-  credentials: "include",   // 👈 ADD THIS LINE
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email, password }),
-});
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
 
+  setIsLoading(false);
+  if (!res.ok) return false;
 
-    setIsLoading(false);
-    if (!res.ok) return false;
+  // ✅ reload session from cookie
+  const me = await fetch("/api/auth/me", {
+    credentials: "include",
+  }).then(r => r.json());
 
-    const data = await res.json();
-    setUser(data.user);
-    return true;
-  }, []);
+  setUser(me.user);
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    setIsLoading(true);
-
-    const res = await fetch("/api/auth/register", {
-  method: "POST",
-  credentials: "include",   // 👈 ADD THIS LINE
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email, password, name }),
-});
+  return true;
+}, []);
 
 
-    setIsLoading(false);
-    if (!res.ok) return false;
+const register = useCallback(async (email: string, password: string, name: string) => {
+  setIsLoading(true);
 
-    const data = await res.json();
-    setUser(data.user);
-    return true;
-  }, []);
+  const res = await fetch("/api/auth/register", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, name }),
+  });
 
-  const logout = useCallback(async () => {
-    await fetch("/api/auth/logout", {
-  method: "POST",
-  credentials: "include",   // 👈 ADD THIS LINE
-});
+  setIsLoading(false);
+  if (!res.ok) return false;
 
-    setUser(null);
-    setSelectedSeats([]);
-  }, []);
+  const me = await fetch("/api/auth/me", {
+    credentials: "include",
+  }).then(r => r.json());
+
+  setUser(me.user);
+
+  return true;
+}, []);
+
 
   /* ---------- Seat selection ---------- */
 
