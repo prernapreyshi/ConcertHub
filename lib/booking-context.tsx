@@ -199,6 +199,16 @@ const register = useCallback(async (email: string, password: string, name: strin
   return true;
 }, []);
 
+  const logout = useCallback(async () => {
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  }).catch(() => {});
+
+  setUser(null);
+  setSelectedSeats([]);
+}, []);
+
 
   /* ---------- Seat selection ---------- */
 
