@@ -60,16 +60,16 @@ export function Header({ onMyTickets }: HeaderProps) {
               </button>
 
               {/* Logout */}
-              <Button
-                variant="outline"
-                size="sm"
-               onClick={() => logout()}
+             <Button
+  variant="outline"
+  size="sm"
+  onClick={logout}
+  className="gap-2 bg-transparent px-2 sm:px-3"
+>
+  <LogOut className="h-4 w-4" />
+  <span className="hidden sm:inline">Logout</span>
+</Button>
 
-                className="gap-2 bg-transparent px-2 sm:px-3"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
             </>
           ) : (
             // ✅ Guest view → Login button
