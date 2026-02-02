@@ -157,10 +157,12 @@ useEffect(() => {
     setIsLoading(true);
 
     const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+  method: "POST",
+  credentials: "include",   // 👈 ADD THIS LINE
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email, password }),
+});
+
 
     setIsLoading(false);
     if (!res.ok) return false;
@@ -174,10 +176,12 @@ useEffect(() => {
     setIsLoading(true);
 
     const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, name }),
-    });
+  method: "POST",
+  credentials: "include",   // 👈 ADD THIS LINE
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email, password, name }),
+});
+
 
     setIsLoading(false);
     if (!res.ok) return false;
@@ -188,7 +192,11 @@ useEffect(() => {
   }, []);
 
   const logout = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", {
+  method: "POST",
+  credentials: "include",   // 👈 ADD THIS LINE
+});
+
     setUser(null);
     setSelectedSeats([]);
   }, []);
