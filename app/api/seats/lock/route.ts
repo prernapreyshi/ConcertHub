@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import { lockSeat, unlockSeat, getLockedSeats } from "@/lib/seat-lock";
 import { getCurrentUser } from "@/lib/auth";
