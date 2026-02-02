@@ -5,7 +5,6 @@ import { useState, useEffect } from "react"
 import { BookingProvider, useBooking } from "@/lib/booking-context"
 import type { Booking } from "@/lib/models/booking"
 import type { Seat } from "@/lib/models/seat"
-
 import { Header } from "@/components/header"
 import { ConcertInfo } from "@/components/concert-info"
 import { SeatGrid } from "@/components/seat-grid"
