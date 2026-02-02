@@ -22,7 +22,7 @@ function BookingApp() {
   const [view, setView] = useState<"booking" | "ticket">("booking")
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null)
 
-  // ✅ existing effec
+  
   useEffect(() => {
     if (user && bookings.length > 0) {
       setActiveBooking(bookings[bookings.length - 1])
