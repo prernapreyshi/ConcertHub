@@ -17,12 +17,7 @@ import { TicketConfirmation } from "@/components/ticket-confirmation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 function BookingApp() {
-  const {
-    user,
-    bookings,
-    selectSeat,
-    deselectSeat,
-  } = useBooking()
+  const { user, bookings, selectSeat, deselectSeat } = useBooking()
 
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
@@ -30,12 +25,21 @@ function BookingApp() {
   const [view, setView] = useState<"booking" | "ticket">("booking")
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null)
 
+  // ✅ existing effect
   useEffect(() => {
     if (user && bookings.length > 0) {
       setActiveBooking(bookings[bookings.length - 1])
       setView("ticket")
     }
   }, [user, bookings])
+
+  // ✅ NEW FIX — reset UI after logout
+  useEffect(() => {
+    if (!user) {
+      setView("booking")
+      setActiveBooking(null)
+    }
+  }, [user])
 
   const handleSeatClick = (seat: Seat) => {
     if (seat.status === "selected") {
@@ -76,7 +80,6 @@ function BookingApp() {
       <Header onMyTickets={handleMyTickets} />
 
       <main className="container mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8">
-        {/* ================= TICKET VIEW ================= */}
         {view === "ticket" && activeBooking && (
           <TicketConfirmation
             booking={activeBooking}
@@ -84,7 +87,6 @@ function BookingApp() {
           />
         )}
 
-        {/* ================= BOOKING VIEW ================= */}
         {view === "booking" && (
           <>
             <div className="mb-6 md:mb-8 text-center">
@@ -97,7 +99,6 @@ function BookingApp() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-3">
-              {/* LEFT SECTION */}
               <div className="space-y-4 md:space-y-6 lg:col-span-2">
                 <ConcertInfo />
 
@@ -114,7 +115,6 @@ function BookingApp() {
                 </Card>
               </div>
 
-              {/* RIGHT SIDEBAR */}
               <div className="w-full lg:sticky lg:top-24 lg:h-fit">
                 <SelectionSummary
                   onProceedToCheckout={handleProceedToCheckout}
