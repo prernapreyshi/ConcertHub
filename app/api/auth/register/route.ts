@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { getDatabase } from "@/lib/mongodb";
 import { hashPassword, signToken } from "@/lib/auth";
 import type { User } from "@/lib/models/user";
