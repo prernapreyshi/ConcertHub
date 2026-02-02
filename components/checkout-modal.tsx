@@ -13,7 +13,6 @@ import {
 import { Clock, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 import type { Booking } from "@/lib/models/booking"
 
-
 interface CheckoutModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -29,10 +28,9 @@ export function CheckoutModal({
     concert,
     selectedSeats,
     processPayment,
+    clearSelection,
     isLoading,
   } = useBooking()
-
-  if (!concert) return null
 
   const [step, setStep] = useState<
     "confirm" | "processing" | "success" | "error"
@@ -62,7 +60,11 @@ export function CheckoutModal({
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer)
+
+          // release selection if timeout
+          clearSelection()
           onOpenChange(false)
+
           return 0
         }
         return prev - 1
@@ -70,7 +72,7 @@ export function CheckoutModal({
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [open, step, onOpenChange])
+  }, [open, step, onOpenChange, clearSelection])
 
   /* ================= HELPERS ================= */
 
@@ -86,7 +88,7 @@ export function CheckoutModal({
     setStep("processing")
 
     try {
-      await new Promise(r => setTimeout(r, 1500))
+      await new Promise(r => setTimeout(r, 1200))
 
       const booking = await processPayment()
 
@@ -96,10 +98,10 @@ export function CheckoutModal({
         setTimeout(() => {
           onPaymentSuccess(booking)
           onOpenChange(false)
-        }, 1500)
+        }, 1200)
       } else {
         setStep("error")
-        setErrorMessage("Payment processing failed.")
+        setErrorMessage("Payment failed. Please try again.")
       }
     } catch {
       setStep("error")
@@ -108,6 +110,7 @@ export function CheckoutModal({
   }
 
   const handleCancel = () => {
+    clearSelection()
     onOpenChange(false)
   }
 
@@ -119,7 +122,7 @@ export function CheckoutModal({
   /* ================= UI ================= */
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent className="w-[95vw] max-w-md rounded-xl p-4 sm:p-6">
 
         {/* CONFIRM */}
@@ -148,6 +151,9 @@ export function CheckoutModal({
               <p className="font-medium">{concert.name}</p>
               <p className="text-sm text-muted-foreground">
                 {concert.artist}
+              </p>
+              <p className="mt-2 text-sm font-semibold">
+                Seats: {selectedSeats.map(s => s.seatId).join(", ")}
               </p>
             </div>
 
@@ -198,10 +204,7 @@ export function CheckoutModal({
               {errorMessage}
             </p>
 
-            <Button
-              onClick={handleRetry}
-              className="w-full sm:w-auto"
-            >
+            <Button onClick={handleRetry}>
               Try Again
             </Button>
           </div>
