@@ -234,6 +234,7 @@ useEffect(() => {
 
 
 
+
   const deselectSeat = useCallback(async (seatId: string) => {
     await fetch("/api/seats/lock", {
       method: "POST",
