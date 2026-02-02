@@ -219,10 +219,17 @@ const register = useCallback(async (email: string, password: string, name: strin
   // 🔁 toggle logic (prevents duplicates)
   const alreadySelected = selectedSeats.some(s => s.seatId === seatId);
 
-  if (alreadySelected) {
-    setSelectedSeats(prev => prev.filter(s => s.seatId !== seatId));
-    return;
-  }
+if (alreadySelected) {
+  setSeats(prev =>
+    prev.map(s =>
+      s.seatId === seatId ? { ...s, status: "available" } : s
+    )
+  );
+
+  setSelectedSeats(prev => prev.filter(s => s.seatId !== seatId));
+  return;
+}
+
 
   // ✅ guest mode
 if (!user) {
