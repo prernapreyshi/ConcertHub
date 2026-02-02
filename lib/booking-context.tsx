@@ -97,11 +97,14 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   /* ---------- Restore session ---------- */
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then(res => res.json())
-      .then(data => setUser(data.user))
-      .catch(() => setUser(null));
-  }, []);
+  fetch("/api/auth/me", {
+    credentials: "include",
+  })
+    .then(res => res.json())
+    .then(data => setUser(data.user))
+    .catch(() => setUser(null));
+}, []);
+
 
   /* ---------- Sync seat status ---------- */
 
